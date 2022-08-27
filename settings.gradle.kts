@@ -1,1 +1,1 @@
-rootProject.name = "kotlin-mocker"
+rootProject.name = "jockmock"

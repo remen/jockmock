@@ -34,7 +34,7 @@ class JockMockTest {
         fun helloWorlds(s: String): String
     }
 
-    open class ClassWithNoDefaultConstructor(someArgument: String) {
+    open class ClassWithNoDefaultConstructor(@Suppress("UNUSED_PARAMETER") ignored: String) {
         open fun helloWorld(): String {
             return "something"
         }
