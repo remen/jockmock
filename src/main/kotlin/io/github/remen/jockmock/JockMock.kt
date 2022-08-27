@@ -8,6 +8,7 @@ import org.objenesis.ObjenesisHelper
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import kotlin.jvm.internal.CallableReference
+import kotlin.reflect.KFunction
 import kotlin.reflect.KFunction0
 import kotlin.reflect.KFunction1
 
@@ -34,14 +35,14 @@ object JockMock {
 
     @JvmName("stub0")
     fun <ReturnType> KFunction0<ReturnType>.stub(implementation: () -> ReturnType) {
-        val jockMock = getInvocationHandler(this as CallableReference)
-        jockMock.stubbedMethods[this.name] = { implementation() }
+        val handler = getInvocationHandler(this as CallableReference)
+        handler.stub(this) { implementation() }
     }
 
     @JvmName("stub1")
     fun <Arg0, ReturnType> KFunction1<Arg0, ReturnType>.stub(implementation: (arg0: Arg0) -> ReturnType) {
-        val jockMock = getInvocationHandler(this as CallableReference)
-        jockMock.stubbedMethods[this.name] = { args ->
+        val handler = getInvocationHandler(this as CallableReference)
+        handler.stub(this) { args ->
             @Suppress("UNCHECKED_CAST")
             implementation(args[0] as Arg0)
         }
@@ -54,10 +55,14 @@ object JockMock {
     }
 
     class JockMockInvocationHandler : InvocationHandler {
-        val stubbedMethods = mutableMapOf<String, (args: Array<out Any>) -> Any?>()
+        private val stubbedMethods = mutableMapOf<String, (args: Array<out Any>) -> Any?>()
 
         override fun invoke(proxy: Any?, method: Method, args: Array<out Any>?): Any? {
             return stubbedMethods[method.name]!!.invoke(args ?: emptyArray())
+        }
+
+        fun stub(method: KFunction<*>, implementation: (Array<out Any>) -> Any?) {
+            stubbedMethods[method.name] = implementation
         }
     }
 }
